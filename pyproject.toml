@@ -1,0 +1,9 @@
+[project]
+name = "ri3a-proj-cyber"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "colorama>=0.4.6",
+]
