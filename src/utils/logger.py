@@ -48,7 +48,11 @@ def init_logging(
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
 
+    def raw(msg: str):
+        print(msg)
 
-__all__ = ["get_logger", "init_logging"]
+    logger.raw = raw
+
+    return logger
