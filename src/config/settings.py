@@ -7,3 +7,4 @@ class Settings:
         self.log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
         self.log_datefmt = "%Y-%m-%d %H:%M:%S"
         self.plot = False
+        self.plot_correlations = False

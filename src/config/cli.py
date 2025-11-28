@@ -21,4 +21,10 @@ def parse_cli_args():
         help="Generate plots after processing",
     )
 
+    parser.add_argument(
+        "--plot-correlations",
+        action="store_true",
+        help="Generate correlation plots after processing",
+    )
+
     return parser.parse_args()

@@ -30,4 +30,7 @@ def merge_config(cli_args, cfg_file: dict) -> Settings:
     if cli_args.plot:
         settings.plot = True
 
+    if cli_args.plot_correlations:
+        settings.plot_correlations = True
+
     return settings
