@@ -1,5 +1,6 @@
 import logging
 
+
 class Settings:
     def __init__(self):
         self.log_level = logging.INFO

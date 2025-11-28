@@ -2,6 +2,7 @@ import numpy as np
 import mmap
 import os
 
+
 def save_array_to_mmap(arr: np.ndarray, filename: str):
     with open(filename, "wb") as f:
         f.write(arr.tobytes())
