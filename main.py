@@ -4,18 +4,19 @@ from src.config.loader import load_config_file, merge_config
 from src.utils.data_loader import load_traces, load_textin
 from src.context.shared import save_array_to_mmap
 from src.guesser.dpa import dpa_guesser
+from src.utils.colors import RED, GREEN, BOLD, RESET, conf_color
 
 KEY = [
-    0x2B,
-    0x7E,
-    0x15,
+    0x2B,  # Byte 0
+    0x7E,  # Byte 1
+    0x15,  # ...
     0x16,
     0x28,
     0xAE,
     0xD2,
     0xA6,
     0xAB,
-    0xF7,
+    0xF7,  # Byte 9
     0x15,
     0x88,
     0x09,
@@ -23,8 +24,6 @@ KEY = [
     0x4F,
     0x3C,
 ]
-
-NB_TRACES = 600
 
 
 def main():
@@ -57,14 +56,37 @@ def main():
         traces_file, traces_shape, traces_dtype, textin_file, textin_shape, textin_dtype
     )
 
-    logger.info("Key guessed: %s", guesses)
+    logger.info("Key guessed: %s", [r.guess for r in guesses if hasattr(r, "guess")])
 
-    for i, guess in enumerate(guesses):
-        formatted_guess = f"0x{int(guess, 16):02x}"
-        correct = f"0x{KEY[i]:02x}"
-        status = "OK" if formatted_guess == correct else "NOK"
+    logger.raw("")
+    logger.raw("=== DPA BYTE SUMMARY ===")
+    logger.raw("Byte | Guess  | Correct | Status | Confidence | Second Best")
+    logger.raw(
+        "-----+--------+---------+--------+------------+------------------------"
+    )
 
-        logger.raw(f"\tByte {i}: {formatted_guess}\t (Correct: {correct}) \t {status}")
+    for i, result in enumerate(guesses):
+        guess_hex = f"0x{int(result['guess'], 16):02x}"
+        correct_hex = f"0x{KEY[i]:02x}"
+
+        ok = guess_hex == correct_hex
+        status = f"{GREEN}OK {RESET}" if ok else f"{BOLD}{RED}NOK{RESET}"
+
+        pct = result["confidence"] * 100
+        color = conf_color(pct)
+        conf_str = f"{color}{pct:6.2f}%{RESET}"
+
+        if not ok:
+            second_hex = f"0x{result['second_guess']:02x}"
+            logger.raw(
+                f"{i:>4} | {guess_hex:>6} | {correct_hex:>7} |    {status:>6} |    "
+                f"{conf_str:>10} | {second_hex} ({round(result['second'], 5)} vs {round(result['best'], 5)})"
+            )
+        else:
+            logger.raw(
+                f"{i:>4} | {guess_hex:>6} | {correct_hex:>7} |    {status:>6} |    "
+                f"{conf_str:>10} |"
+            )
 
 
 if __name__ == "__main__":
