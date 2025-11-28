@@ -15,4 +15,10 @@ def parse_cli_args():
         help="Override log level",
     )
 
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Generate plots after processing",
+    )
+
     return parser.parse_args()

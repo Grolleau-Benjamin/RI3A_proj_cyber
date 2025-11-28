@@ -51,12 +51,21 @@ def main():
     )
 
     logger.info("Starting guessing process")
+    if settings.plot:
+        logger.info("[+] Plotting enabled")
 
-    guesses = dpa_guesser(
-        traces_file, traces_shape, traces_dtype, textin_file, textin_shape, textin_dtype
+    guesses: list[dict] = dpa_guesser(
+        traces_file,
+        traces_shape,
+        traces_dtype,
+        textin_file,
+        textin_shape,
+        textin_dtype,
+        plotting=settings.plot,
     )
 
-    logger.info("Key guessed: %s", [r.guess for r in guesses if hasattr(r, "guess")])
+    #  pylint: disable=E1136
+    logger.info("Key guessed: %s", [r["guess"] for r in guesses])
 
     logger.raw("")
     logger.raw("=== DPA BYTE SUMMARY ===")

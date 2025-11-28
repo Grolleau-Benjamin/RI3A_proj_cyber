@@ -20,7 +20,14 @@ def merge_config(cli_args, cfg_file: dict) -> Settings:
         settings.log_format = log_cfg.get("format", settings.log_format)
         settings.log_datefmt = log_cfg.get("datefmt", settings.log_datefmt)
 
+    if "output" in cfg_file:
+        out_cfg = cfg_file["output"]
+        settings.plot = out_cfg.get("plot", settings.plot)
+
     if cli_args.log_level:
         settings.log_level = getattr(logging, cli_args.log_level.upper())
+
+    if cli_args.plot:
+        settings.plot = True
 
     return settings

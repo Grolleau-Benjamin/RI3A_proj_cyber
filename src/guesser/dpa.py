@@ -36,6 +36,7 @@ def dpa_worker(
     textin_file,
     textin_shape,
     textin_dtype,
+    plotting=False,
 ):
 
     traces = load_array_from_mmap(traces_file, traces_shape, traces_dtype)
@@ -45,7 +46,8 @@ def dpa_worker(
     for g in range(256):
         scores[g] = dpa_compute_score(g, traces, textin, byte_index)
 
-    save_score_curve_plot(scores, byte_index)
+    if plotting:
+        save_score_curve_plot(scores, byte_index)
 
     scores = np.array(scores)
 
@@ -61,7 +63,8 @@ def dpa_worker(
     confidence = min(max(contrast, 0.0), 1.0)
 
     diff_vec = dpa_diff_vector(best_guess, traces, textin, byte_index)
-    save_diff_vector_plot(best_guess, diff_vec, byte_index)
+    if plotting:
+        save_diff_vector_plot(best_guess, diff_vec, byte_index)
 
     return {
         "guess": hex(best_guess),
@@ -73,8 +76,14 @@ def dpa_worker(
 
 
 def dpa_guesser(
-    traces_file, traces_shape, traces_dtype, textin_file, textin_shape, textin_dtype
-):
+    traces_file,
+    traces_shape,
+    traces_dtype,
+    textin_file,
+    textin_shape,
+    textin_dtype,
+    plotting=False,
+) -> list[dict]:
 
     guesses = [None] * 16
 
@@ -89,6 +98,7 @@ def dpa_guesser(
                 textin_file,
                 textin_shape,
                 textin_dtype,
+                plotting=plotting,
             ): i
             for i in range(16)
         }
