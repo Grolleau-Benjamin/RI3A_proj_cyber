@@ -12,7 +12,7 @@ from src.context.shared import load_array_from_mmap
 from src.utils.progress import progress_bar
 
 
-def calculate_score(guess, traces, textin, byte_index=0):
+def dpa_compute_score(guess, traces, textin, byte_index=0):
     hyp = np.array([aes_internal(guess, t) for t in textin[:, byte_index]])
     mask = hyp & 1
 
@@ -20,7 +20,7 @@ def calculate_score(guess, traces, textin, byte_index=0):
     return np.max(diff_vec)
 
 
-def calculate_diff_vector(guess, traces, textin, byte_index=0):
+def dpa_diff_vector(guess, traces, textin, byte_index=0):
     hyp = np.array([aes_internal(guess, t) for t in textin[:, byte_index]])
     mask = hyp & 1
 
@@ -30,7 +30,7 @@ def calculate_diff_vector(guess, traces, textin, byte_index=0):
     return abs(one_avg - zero_avg)
 
 
-def worker(
+def dpa_worker(
     byte_index,
     traces_file,
     traces_shape,
@@ -44,13 +44,13 @@ def worker(
     textin = load_array_from_mmap(textin_file, textin_shape, textin_dtype)
 
     best_guess = max(
-        range(256), key=lambda g: calculate_score(g, traces, textin, byte_index)
+        range(256), key=lambda g: dpa_compute_score(g, traces, textin, byte_index)
     )
 
     return hex(best_guess)
 
 
-def guesser(
+def dpa_guesser(
     traces_file, traces_shape, traces_dtype, textin_file, textin_shape, textin_dtype
 ):
 
@@ -59,7 +59,7 @@ def guesser(
     with ProcessPoolExecutor() as executor:
         futures = {
             executor.submit(
-                worker,
+                dpa_worker,
                 i,
                 traces_file,
                 traces_shape,
