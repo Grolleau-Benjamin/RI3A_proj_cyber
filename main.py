@@ -3,7 +3,12 @@ from src.config.cli import parse_cli_args
 from src.config.loader import load_config_file, merge_config
 from src.utils.data_loader import load_traces, load_textin
 from src.context.shared import save_array_to_mmap
-from src.guesser.dpa import dpa_guesser
+from src.guesser.dpa import (
+    dpa_guesser,
+)
+from src.guesser.convergence import (
+    plot_all_bytes_parallel,
+)
 from src.utils.colors import RED, GREEN, BOLD, RESET, conf_color
 
 KEY = [
@@ -96,6 +101,11 @@ def main():
                 f"{i:>4} | {guess_hex:>6} | {correct_hex:>7} |    {status:>6} |    "
                 f"{conf_str:>10} |"
             )
+
+    if settings.plot:
+        logger.raw("=========================")
+        logger.raw("Plotting all guesses convergence for each byte...")
+        plot_all_bytes_parallel(traces, textin)
 
 
 if __name__ == "__main__":

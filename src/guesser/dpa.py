@@ -16,16 +16,28 @@ from src.guesser.plots import save_diff_vector_plot, save_score_curve_plot
 def dpa_compute_score(guess, traces, textin, byte_index=0):
     hyp = np.array([aes_internal(guess, t) for t in textin[:, byte_index]])
     mask = hyp & 1
-    diff_vec = abs(traces[mask == 1].mean(0) - traces[mask == 0].mean(0))
-    return np.max(diff_vec)
+
+    sel1 = traces[mask == 1]
+    sel0 = traces[mask == 0]
+
+    if sel1.size == 0 or sel0.size == 0:
+        return 0.0
+
+    diff_vec = abs(sel1.mean(0) - sel0.mean(0))
+    return float(np.max(diff_vec))
 
 
 def dpa_diff_vector(guess, traces, textin, byte_index=0):
     hyp = np.array([aes_internal(guess, t) for t in textin[:, byte_index]])
     mask = hyp & 1
-    one_avg = traces[mask == 1].mean(0)
-    zero_avg = traces[mask == 0].mean(0)
-    return abs(one_avg - zero_avg)
+
+    sel1 = traces[mask == 1]
+    sel0 = traces[mask == 0]
+
+    if sel1.size == 0 or sel0.size == 0:
+        return np.zeros(traces.shape[1])
+
+    return abs(sel1.mean(0) - sel0.mean(0))
 
 
 def dpa_worker(
