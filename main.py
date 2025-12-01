@@ -33,7 +33,6 @@ KEY = [
     0x4F,
     0x3C,
 ]
-CPA_N = 100
 
 
 def main():
@@ -107,8 +106,8 @@ def main():
                 f"{conf_str:>10} |"
             )
 
-    traces_cpa = traces[:CPA_N]
-    textin_cpa = textin[:CPA_N]
+    traces_cpa = traces[: settings.nb_cpa_traces]
+    textin_cpa = textin[: settings.nb_cpa_traces]
 
     traces_cpa_file, traces_cpa_shape, traces_cpa_dtype = save_array_to_mmap(
         traces_cpa, "data/traces_cpa.bin"

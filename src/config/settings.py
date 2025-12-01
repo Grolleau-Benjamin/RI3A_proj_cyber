@@ -8,3 +8,4 @@ class Settings:
         self.log_datefmt = "%Y-%m-%d %H:%M:%S"
         self.plot = False
         self.plot_correlations = False
+        self.nb_cpa_traces = 100

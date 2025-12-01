@@ -33,4 +33,7 @@ def merge_config(cli_args, cfg_file: dict) -> Settings:
     if cli_args.plot_correlations:
         settings.plot_correlations = True
 
+    if cli_args.nb_cpa_traces is not None:
+        settings.nb_cpa_traces = cli_args.nb_cpa_traces
+
     return settings

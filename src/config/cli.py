@@ -27,4 +27,11 @@ def parse_cli_args():
         help="Generate correlation plots after processing",
     )
 
+    parser.add_argument(
+        "--nb-cpa-traces",
+        type=int,
+        default=None,
+        help="Number of traces to use for CPA analysis",
+    )
+
     return parser.parse_args()
