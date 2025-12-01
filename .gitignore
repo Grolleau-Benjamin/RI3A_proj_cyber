@@ -11,5 +11,12 @@ wheels/
 
 **/*.bin
 
-plots/
+plots/**/*.png
+plots/**/*.jpg
+plots/**/*.jpeg
+plots/**/*.svg
+!plots/**/dpa_compute_score_0x00/**
+!plots/**/cpa_compute_score_0x00/**
+
 data/
+.DS_Store

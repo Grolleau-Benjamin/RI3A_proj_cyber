@@ -21,18 +21,7 @@ HW = np.array([bin(i).count("1") for i in range(256)], dtype=np.uint8)
 
 
 def cpa_compute_score(guess, traces, textin, byte_index=0):
-    hyp = np.array(
-        [aes_internal(guess, t) for t in textin[:, byte_index]], dtype=np.uint8
-    )
-    hyp_hw = HW[hyp].astype(np.float64)
-
-    hyp_c = hyp_hw - hyp_hw.mean()
-    traces_c = traces - traces.mean(axis=0)
-
-    num = np.dot(hyp_c, traces_c)
-    denom = np.sqrt(np.sum(hyp_c**2) * np.sum(traces_c**2, axis=0))
-
-    corr = np.divide(num, denom, out=np.zeros_like(num), where=denom != 0)
+    corr = cpa_corr_vector(guess, traces, textin, byte_index)
 
     return float(np.max(np.abs(corr)))
 
