@@ -59,3 +59,11 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     logger.raw = raw
 
     return logger
+
+
+def worker_init_logger(logging_settings):
+    init_logging(
+        level=logging_settings["level"],
+        fmt=logging_settings["fmt"],
+        datefmt=logging_settings["datefmt"],
+    )

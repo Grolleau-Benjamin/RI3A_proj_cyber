@@ -11,6 +11,9 @@ from src.aes.functions import aes_internal
 from src.context.shared import load_array_from_mmap
 from src.utils.progress import progress_bar
 from src.guesser.plots import save_diff_vector_plot, save_score_curve_plot
+from src.utils.logger import get_logger, worker_init_logger
+
+logger = get_logger(__name__)
 
 
 def dpa_compute_score(guess, traces, textin, byte_index=0):
@@ -94,12 +97,15 @@ def dpa_guesser(
     textin_file,
     textin_shape,
     textin_dtype,
+    logging_settings=None,
     plotting=False,
 ) -> list[dict]:
 
     guesses = [None] * 16
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(
+        initializer=worker_init_logger, initargs=(logging_settings,)
+    ) as executor:
         futures = {
             executor.submit(
                 dpa_worker,

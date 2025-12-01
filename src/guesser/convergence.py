@@ -11,17 +11,9 @@ import matplotlib.pyplot as plt
 
 from src.guesser.dpa import dpa_compute_score
 from src.guesser.cpa import cpa_compute_score
-from src.utils.logger import get_logger, init_logging
+from src.utils.logger import get_logger, worker_init_logger
 
 logger = get_logger(__name__)
-
-
-def worker_init_logger(logging_settings):
-    init_logging(
-        level=logging_settings["level"],
-        fmt=logging_settings["fmt"],
-        datefmt=logging_settings["datefmt"],
-    )
 
 
 def plot_convergence_all_guesses_one_byte(

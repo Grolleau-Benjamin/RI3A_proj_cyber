@@ -1,4 +1,5 @@
 import logging
+from src.guesser.plots import save_trace_plot
 from src.utils.logger import get_logger, init_logging
 from src.config.cli import parse_cli_args
 from src.config.loader import load_config_file, merge_config
@@ -67,6 +68,9 @@ def main():
     if settings.plot:
         logger.info("[+] Plotting enabled")
 
+    if settings.plot:
+        save_trace_plot(traces[:5])
+
     guesses: list[dict] = dpa_guesser(
         traces_file,
         traces_shape,
@@ -74,6 +78,11 @@ def main():
         textin_file,
         textin_shape,
         textin_dtype,
+        {
+            "level": settings.log_level,
+            "fmt": settings.log_format,
+            "datefmt": settings.log_datefmt,
+        },
         plotting=settings.plot,
     )
 

@@ -237,3 +237,61 @@ def save_hw_plot(hw, outdir="plots/cpa/hamming_weight"):
     filename = f"{outdir}/hamming_weight_plot.png"
     plt.savefig(filename, dpi=150)
     plt.close()
+
+
+def save_trace_plot(
+    traces, trace_indices=None, zoom_range=(450, 800), outdir="plots/traces"
+):
+    os.makedirs(outdir, exist_ok=True)
+
+    if trace_indices is None:
+        trace_indices = range(min(5, len(traces)))
+
+    colors = ["blue", "green", "red", "purple", "orange"]
+    start, end = zoom_range
+
+    plt.figure(figsize=(16, 9))
+
+    plt.subplot(2, 1, 1)
+    for i, idx in enumerate(trace_indices):
+        plt.plot(
+            traces[idx],
+            color=colors[i % len(colors)],
+            linewidth=0.7,
+            label=f"Trace {idx}",
+        )
+
+    plt.axvline(start, color="black", linestyle="--", linewidth=1)
+    plt.axvline(end, color="black", linestyle="--", linewidth=1)
+
+    plt.annotate(
+        "",
+        xy=(start, 0.25),
+        xytext=(end, 0.25),
+        arrowprops=dict(arrowstyle="<->", color="black"),
+    )
+    plt.text((start + end) / 2, 0.28, "Zoomed region", ha="center")
+
+    plt.title("First traces")
+    plt.xlabel("Sample index")
+    plt.ylabel("Amplitude")
+    plt.grid(True, alpha=0.3)
+    plt.legend(loc="upper right")
+
+    plt.subplot(2, 1, 2)
+    for i, idx in enumerate(trace_indices):
+        plt.plot(
+            traces[idx][start:end],
+            color=colors[i % len(colors)],
+            linewidth=0.8,
+            label=f"Trace {idx} Zoomed",
+        )
+    plt.title(f"Zoomed view {start} to {end}")
+    plt.xlabel("Sample index")
+    plt.ylabel("Amplitude")
+    plt.grid(True, alpha=0.3)
+    plt.legend(loc="upper right")
+
+    plt.tight_layout()
+    plt.savefig(f"{outdir}/traces_plot.png", dpi=200)
+    plt.close()
