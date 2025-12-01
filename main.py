@@ -57,6 +57,12 @@ def main():
     traces = load_traces("data/traces.npy")
     textin = load_textin("data/textin.npy")
 
+    logger.info("Traces shape: %s", traces.shape)
+    logger.info("Textin shape: %s", textin.shape)
+
+    logger.debug("Trace[0]: %s", traces[0])
+    logger.debug("Textin[0]: %s", textin[0])
+
     traces_file, traces_shape, traces_dtype = save_array_to_mmap(
         traces, "data/traces.bin"
     )

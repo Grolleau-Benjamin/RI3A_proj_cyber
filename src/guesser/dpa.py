@@ -17,16 +17,7 @@ logger = get_logger(__name__)
 
 
 def dpa_compute_score(guess, traces, textin, byte_index=0):
-    hyp = np.array([aes_internal(guess, t) for t in textin[:, byte_index]])
-    mask = hyp & 1
-
-    sel1 = traces[mask == 1]
-    sel0 = traces[mask == 0]
-
-    if sel1.size == 0 or sel0.size == 0:
-        return 0.0
-
-    diff_vec = abs(sel1.mean(0) - sel0.mean(0))
+    diff_vec = dpa_diff_vector(guess, traces, textin, byte_index)
     return float(np.max(diff_vec))
 
 
