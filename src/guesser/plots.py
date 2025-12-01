@@ -120,7 +120,6 @@ def save_corr_vector_plot(
     mean_val = float(np.mean(corr_vec))
     median_val = float(np.median(corr_vec))
 
-    # top-10 par valeur absolue
     idx_sorted_abs = np.argsort(np.abs(corr_vec))
     top10_idx = idx_sorted_abs[-10:]
 
@@ -180,7 +179,6 @@ def save_cpa_score_curve_plot(scores, byte_index=0, outdir="plots/cpa/score_curv
     plt.figure(figsize=(14, 4))
     plt.plot(range(256), scores, label="CPA correlation")
 
-    # best
     plt.scatter([best_guess], [best_score], color="red", s=50)
     plt.annotate(
         f"{best_guess:#04x}\n{best_score:.4f}",

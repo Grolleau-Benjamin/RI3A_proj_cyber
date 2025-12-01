@@ -59,9 +59,9 @@ def plot_convergence_all_guesses_one_byte(
         label=f"Second best: 0x{g2:02x} (score={score2:.4f})",
     )
 
-    plt.title(f"Convergence DPA – toutes les hypothèses pour le byte {byte_index}")
-    plt.xlabel("Nombre de mesures")
-    plt.ylabel("Score DPA")
+    plt.title(f"DPA Convergence — all guesses for byte {byte_index}")
+    plt.xlabel("Number of measurements")
+    plt.ylabel("DPA Score")
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
@@ -130,9 +130,9 @@ def plot_convergence_all_guesses_one_byte_cpa(
         label=f"Second best: 0x{g2:02x} (corr={score2:.4f})",
     )
 
-    plt.title(f"Convergence CPA – toutes les hypothèses pour le byte {byte_index}")
-    plt.xlabel("Nombre de mesures")
-    plt.ylabel("Correlation CPA")
+    plt.title(f"CPA Convergence — all guesses for byte {byte_index}")
+    plt.xlabel("Number of measurements")
+    plt.ylabel("CPA Correlation")
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()

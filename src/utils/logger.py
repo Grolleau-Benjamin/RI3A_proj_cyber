@@ -6,6 +6,9 @@ from colorama import Fore, Style, init
 
 init(autoreset=True)
 
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 DEFAULT_FORMAT = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
 DEFAULT_DATEFMT = "%Y-%m-%dT%H:%M:%SZ"
 
