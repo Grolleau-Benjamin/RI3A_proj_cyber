@@ -33,6 +33,7 @@ KEY = [
     0x4F,
     0x3C,
 ]
+CPA_N = 100
 
 
 def main():
@@ -106,13 +107,23 @@ def main():
                 f"{conf_str:>10} |"
             )
 
+    traces_cpa = traces[:CPA_N]
+    textin_cpa = textin[:CPA_N]
+
+    traces_cpa_file, traces_cpa_shape, traces_cpa_dtype = save_array_to_mmap(
+        traces_cpa, "data/traces_cpa.bin"
+    )
+    textin_cpa_file, textin_cpa_shape, textin_cpa_dtype = save_array_to_mmap(
+        textin_cpa, "data/textin_cpa.bin"
+    )
+
     guesses: list[dict] = cpa_guesser(
-        traces_file,
-        traces_shape,
-        traces_dtype,
-        textin_file,
-        textin_shape,
-        textin_dtype,
+        traces_cpa_file,
+        traces_cpa_shape,
+        traces_cpa_dtype,
+        textin_cpa_file,
+        textin_cpa_shape,
+        textin_cpa_dtype,
         plotting=settings.plot,
     )
     logger.info("Key guessed: %s", [r["guess"] for r in guesses])
@@ -153,7 +164,7 @@ def main():
         logger.raw("Done.")
         logger.raw("=========================")
         logger.raw("Plotting all guesses convergence for each byte... (CPA)")
-        plot_all_bytes_parallel_cpa(traces, textin)
+        plot_all_bytes_parallel_cpa(traces_cpa, textin_cpa)
 
         logger.raw("Done.")
         logger.raw("=========================")
