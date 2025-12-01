@@ -215,3 +215,25 @@ def save_cpa_score_curve_plot(scores, byte_index=0, outdir="plots/cpa/score_curv
     filename = f"{outdir}/score_curve_byte{byte_index:02d}.png"
     plt.savefig(filename, dpi=150)
     plt.close()
+
+
+def save_hw_plot(hw, outdir="plots/cpa/hamming_weight"):
+    os.makedirs(outdir, exist_ok=True)
+
+    plt.figure(figsize=(10, 4))
+    plt.bar(range(256), hw, color="blue", alpha=0.7)
+
+    plt.title("Hamming Weight of Byte Values")
+    plt.xlabel("Byte Value (0x00 to 0xFF)")
+    plt.ylabel("Hamming Weight")
+    plt.xticks(
+        ticks=range(0, 256, 16),
+        labels=[f"{i:#04x}" for i in range(0, 256, 16)],
+        rotation=45,
+    )
+    plt.grid(axis="y", alpha=0.3)
+    plt.tight_layout()
+
+    filename = f"{outdir}/hamming_weight_plot.png"
+    plt.savefig(filename, dpi=150)
+    plt.close()

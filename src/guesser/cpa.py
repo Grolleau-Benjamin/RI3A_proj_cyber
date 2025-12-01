@@ -10,7 +10,11 @@ import numpy as np
 from src.aes.functions import aes_internal
 from src.context.shared import load_array_from_mmap
 from src.utils.progress import progress_bar
-from src.guesser.plots import save_corr_vector_plot, save_cpa_score_curve_plot
+from src.guesser.plots import (
+    save_corr_vector_plot,
+    save_cpa_score_curve_plot,
+    save_hw_plot,
+)
 
 
 HW = np.array([bin(i).count("1") for i in range(256)], dtype=np.uint8)
@@ -105,6 +109,9 @@ def cpa_guesser(
     textin_dtype,
     plotting=False,
 ) -> list[dict]:
+
+    if plotting:
+        save_hw_plot(HW)
 
     guesses = [None] * 16
 
