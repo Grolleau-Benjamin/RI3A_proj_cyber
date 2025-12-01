@@ -19,39 +19,33 @@ def plot_convergence_all_guesses_one_byte(
     os.makedirs(outdir, exist_ok=True)
     max_n = traces.shape[0]
 
-    x = np.arange(10, max_n, step)  # np.arange = BEAUCOUP plus rapide
+    x = np.arange(10, max_n, step)
     n_points = len(x)
 
     plt.figure(figsize=(14, 6))
 
-    # optimisation : alias locaux très rapides
     dpa_score = dpa_compute_score
     traces_local = traces
     textin_local = textin
 
-    # pré-alloue tableau au lieu de faire append (grosse optimisation Python)
     all_scores = np.zeros((256, n_points), dtype=float)
 
-    # pré-slice les traces une seule fois
     traces_cache = [traces_local[:n] for n in x]
     textin_cache = [textin_local[:n] for n in x]
 
-    # boucle principale (256 guesses)
     for g in range(256):
-        scores_g = all_scores[g]  # accès direct → rapide
+        scores_g = all_scores[g]
         for i, (t_n, ti_n) in enumerate(zip(traces_cache, textin_cache)):
             scores_g[i] = dpa_score(g, t_n, ti_n, byte_index=byte_index)
 
         plt.plot(x, scores_g, linewidth=0.6, alpha=0.6)
 
-    # best / second-best
-    last_values = all_scores[:, -1]  # vectorisé
+    last_values = all_scores[:, -1]
     idx_sorted = np.argsort(last_values)[::-1]
 
     g1, g2 = idx_sorted[:2]
     score1, score2 = last_values[g1], last_values[g2]
 
-    # plot best + second
     plt.plot(
         x,
         all_scores[g1],
@@ -107,7 +101,6 @@ def plot_convergence_all_guesses_one_byte_cpa(
 
     all_scores = np.zeros((256, n_points), dtype=float)
 
-    # pré-slices
     traces_cache = [traces_local[:n] for n in x]
     textin_cache = [textin_local[:n] for n in x]
 
