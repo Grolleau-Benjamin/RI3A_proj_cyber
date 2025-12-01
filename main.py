@@ -1,3 +1,4 @@
+import logging
 from src.utils.logger import get_logger, init_logging
 from src.config.cli import parse_cli_args
 from src.config.loader import load_config_file, merge_config
@@ -48,6 +49,9 @@ def main():
     )
 
     logger = get_logger(__name__)
+    logger.info(
+        "Program started, log level: %s", logging.getLevelName(settings.log_level)
+    )
 
     traces = load_traces("data/traces.npy")
     textin = load_textin("data/textin.npy")
@@ -158,12 +162,28 @@ def main():
     if settings.plot_correlations:
         logger.raw("=========================")
         logger.raw("Plotting all guesses convergence for each byte...")
-        plot_all_bytes_parallel(traces, textin)
+        plot_all_bytes_parallel(
+            traces,
+            textin,
+            {
+                "level": settings.log_level,
+                "fmt": settings.log_format,
+                "datefmt": settings.log_datefmt,
+            },
+        )
 
         logger.raw("Done.")
         logger.raw("=========================")
         logger.raw("Plotting all guesses convergence for each byte... (CPA)")
-        plot_all_bytes_parallel_cpa(traces_cpa, textin_cpa)
+        plot_all_bytes_parallel_cpa(
+            traces_cpa,
+            textin_cpa,
+            {
+                "level": settings.log_level,
+                "fmt": settings.log_format,
+                "datefmt": settings.log_datefmt,
+            },
+        )
 
         logger.raw("Done.")
         logger.raw("=========================")

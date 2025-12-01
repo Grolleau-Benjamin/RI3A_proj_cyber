@@ -11,6 +11,17 @@ import matplotlib.pyplot as plt
 
 from src.guesser.dpa import dpa_compute_score
 from src.guesser.cpa import cpa_compute_score
+from src.utils.logger import get_logger, init_logging
+
+logger = get_logger(__name__)
+
+
+def worker_init_logger(logging_settings):
+    init_logging(
+        level=logging_settings["level"],
+        fmt=logging_settings["fmt"],
+        datefmt=logging_settings["datefmt"],
+    )
 
 
 def plot_convergence_all_guesses_one_byte(
@@ -39,6 +50,7 @@ def plot_convergence_all_guesses_one_byte(
             scores_g[i] = dpa_score(g, t_n, ti_n, byte_index=byte_index)
 
         plt.plot(x, scores_g, linewidth=0.6, alpha=0.6)
+        logger.debug("[DPA Convergence][Byte %d][Guess 0x%02x] Done", byte_index, g)
 
     last_values = all_scores[:, -1]
     idx_sorted = np.argsort(last_values)[::-1]
@@ -72,8 +84,10 @@ def plot_convergence_all_guesses_one_byte(
     return out
 
 
-def plot_all_bytes_parallel(traces, textin):
-    with ProcessPoolExecutor() as ex:
+def plot_all_bytes_parallel(traces, textin, logging_settings):
+    with ProcessPoolExecutor(
+        initializer=worker_init_logger, initargs=(logging_settings,)
+    ) as ex:
         futures = {
             ex.submit(plot_convergence_all_guesses_one_byte, traces, textin, i): i
             for i in range(16)
@@ -81,7 +95,7 @@ def plot_all_bytes_parallel(traces, textin):
 
         for f in as_completed(futures):
             i = futures[f]
-            print(f"[+] Done for byte {i}")
+            logger.info("[DPA Convergence] Done for byte %d", i)
 
 
 def plot_convergence_all_guesses_one_byte_cpa(
@@ -110,6 +124,7 @@ def plot_convergence_all_guesses_one_byte_cpa(
             scores_g[i] = cpa_score(g, t_n, ti_n, byte_index=byte_index)
 
         plt.plot(x, scores_g, linewidth=0.6, alpha=0.6)
+        logger.debug("[CPA Convergence][Byte %d][Guess 0x%02x] Done", byte_index, g)
 
     last_values = all_scores[:, -1]
     idx_sorted = np.argsort(last_values)[::-1]
@@ -143,8 +158,10 @@ def plot_convergence_all_guesses_one_byte_cpa(
     return out
 
 
-def plot_all_bytes_parallel_cpa(traces, textin):
-    with ProcessPoolExecutor() as ex:
+def plot_all_bytes_parallel_cpa(traces, textin, logging_settings):
+    with ProcessPoolExecutor(
+        initializer=worker_init_logger, initargs=(logging_settings,)
+    ) as ex:
         futures = {
             ex.submit(plot_convergence_all_guesses_one_byte_cpa, traces, textin, i): i
             for i in range(16)
@@ -152,4 +169,4 @@ def plot_all_bytes_parallel_cpa(traces, textin):
 
         for f in as_completed(futures):
             i = futures[f]
-            print(f"[CPA] Done for byte {i}")
+            logger.info("[CPA Convergence] Done for byte %d", i)
