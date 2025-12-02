@@ -1,5 +1,9 @@
 # RI3A Cyber Project
 
+## Related notes
+- [CPA Explanation (fr)](./papers/CPA_Explication)
+- [DPA Explanation (fr)](./papers/DPA_Explication.pdf)
+
 ## Usage
 Run the program:
 ```bash
