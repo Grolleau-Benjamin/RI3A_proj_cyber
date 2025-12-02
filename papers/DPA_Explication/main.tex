@@ -1,0 +1,289 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[caption=false,font=footnotesize]{subfig}
+\usepackage{lipsum}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+
+\title{DPA — Comment ca fonctionne ?}
+
+\author{
+\makebox[\textwidth][c]{%
+\begin{tabular}{ccc}
+\textbf{Benjamin Grolleau} \\
+\scriptsize ENSEIRB--MATMECA, Bordeaux INP, France \\
+\scriptsize \texttt{benjamin.grolleau@bordeaux-inp.fr}
+\end{tabular}%
+}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Ce papier présente une étude pratique de l’attaque DPA (\textit{Differential Power Analysis}) appliquée à une implémentation matérielle d’AES-128. À partir d’un ensemble de 600 traces de consommation et de plaintexts associés, nous illustrons pas à pas le processus permettant de retrouver un octet de la clé secrète. L’analyse repose sur un modèle de fuite simple basé sur le bit de poids faible de la sortie de la SBox. Nous détaillons la construction des hypothèses, la séparation des traces, le calcul du vecteur de différences et la sélection de la clé. Nous étudions également le taux de confiance et la convergence en fonction du nombre de traces. Les résultats montrent qu’une fuite exploitable permet de retrouver la clé correcte de manière fiable dès quelques centaines de traces.
+\end{abstract}
+
+
+%\begin{IEEEkeywords}
+
+%\end{IEEEkeywords}
+
+
+
+
+
+\section{Introduction}
+
+Les attaques par analyse de consommation, telles que la DPA — \textit{Differential Power Analysis} — constituent aujourd’hui l’une des menaces les plus efficaces contre les implémentations matérielles d’algorithmes cryptographiques tels qu’AES. En exploitant les variations de consommation électrique d’un composant dues au fonctionnement des circuits CMOS pendant l’exécution de l’algorithme, il est possible d’inférer des informations internes normalement secrètes, comme des bits de clé.
+
+L’objectif de ce travail est d’illustrer concrètement le fonctionnement interne d’une attaque DPA appliquée au premier octet d’une clé AES, en montrant comment la corrélation entre les hypothèses de fuite et les mesures physiques permet d’isoler le bon candidat parmi les 256 valeurs possibles. À partir d’un jeu de 600 traces accompagnées de textes d’entrée connus, nous détaillons la méthodologie, les traitements effectués et l’interprétation des résultats qui permettent, pas à pas, de reconstituer un octet de la clé.
+
+\section{Données d’entrée}
+
+Pour réaliser l’attaque DPA, nous disposons de deux types de données d’entrée.
+La première est constituée d’un ensemble de 600 traces de consommation, chacune contenant 5000 échantillons représentant l’évolution de la consommation électrique au cours de l’exécution de l’algorithme AES. Chaque trace correspond donc à une exécution complète d’AES réalisée avec un plaintext différent, mais toujours avec la même clé secrète. Un exemple de plusieurs traces superposées est illustré en Figure~\ref{fig:traces}.
+
+En parallèle, nous possédons 600 textes d’entrée, chacun composé de 16 octets (correspondant à la taille du bloc AES-128 qui a été chiffré). Chaque plaintext est associé exactement à une trace, ce qui permet de relier une mesure physique à la donnée manipulée par l’algorithme.
+
+Dans ce contexte, chaque trace peut être vue comme le résultat d’une fonction de fuite physique $\mathcal{L}$, appliquée à l’exécution de l’AES sur un texte d’entrée donné. On peut donc formaliser la relation entre plaintext, clé et trace de la manière suivante :
+
+\begin{equation}
+    \text{trace}[i] = \mathcal{L}(\text{AES}(\text{secret\_key},\ \text{textin}[i]))
+\end{equation}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.90\linewidth]{img/traces_plot.png}
+    \caption{Exemple de plusieurs traces de consommation utilisées pour l’attaque.}
+    \label{fig:traces}
+\end{figure}
+
+
+\section{Méthodologie de l’attaque DPA}
+L'objectif de l'attaque DPA est d'identifier la valeur de chaque octet de la clé AES en exploitant la dépendance entre la consommation électronique du composant et certaines valeurs intermédiaires calculées pendant l’exécution de l'attaque. La méthode repose sur la formulation d’hypothèses de clé, puis sur l’analyse statistique des traces associées à ces hypothèses. Dans notre cas, nous étudierons simplement le \textit{byte} d'index 0 car l’exécution sera la même pour les 15 autres.
+
+\subsection{Valeur intermédiaire ciblée}
+La fuite exploitée est due à la première opération non linéaire d'AES :
+\begin{equation}
+    v = \mathrm{SBox}(\mathrm{plaintext}[i] \oplus \mathrm{key}[i])
+\end{equation}
+Comme nous cherchons à déterminer $\mathrm{key}[0]$, nous utiliserons, pour chaque trace, l'octet d'entrée $\mathrm{plaintext}[0]$. La valeur exacte manipulée par la SBox n’est pas observée directement, mais certaines de ses caractéristiques comme bit de poids faible et poids de Hamming influencent la consommation électrique.
+
+Dans notre cas, la fuite modélisée est le bit de poids faible (LSB) de la sortie de la SBox :
+
+\begin{equation}
+    \mathrm{leak} = v \mathbin{\&} 0x01
+\end{equation}
+
+\subsection{Construction des hypothèses de fuite}
+Pour retrouver le byte de la clé, on teste les 256 possibilités présentes sur l’intervalle $guess \in [0x00; 0xff]$, pour chaque hypothèse \textit{guess}, et pour les 600 traces disponibles, on calcule :
+
+\begin{equation}
+    v_k = \mathrm{SBox}(\mathrm{plaintext}[k][0] \oplus guess)
+\end{equation}
+
+puis le bit de fuite associé (bit de poids faible) : 
+
+\begin{equation}
+    mask[k] = v_k \mathbin{\&} 0x01
+\end{equation}
+
+On obtient ainsi, pour une hypothèse donnée, un vecteur de 600 bits qui prédit, pour chaque trace, le comportement du circuit si la clé était guess.
+
+\subsection{Séparation en deux groupes de traces}
+La DPA repose sur l’observation que les consommations diffèrent selon que le bit de fuite vaut 0 ou 1. Nous regroupons les traces selon le masque :
+
+\begin{itemize}
+    \item sel1 : traces pour lesquelles $mask[k] = 1$,
+    \item sel0 : traces pour lesquelles $mask[k] = 0$.
+\end{itemize}
+
+Dans le cadre de données d'entrées idéalement aléatoires, la longueur de ces deux listes vaut environ la moitié du nombre de traces.
+
+Chaque trace contenant 5000 échantillons, on peut ainsi comparer, pour chaque instant $t$, la consommation moyenne des deux groupes. 
+
+\subsection{Calcul du vecteur de différences}
+
+Pour chaque hypothèse de clé, on calcule :
+
+\begin{equation}
+\mathrm{diff}(t) = | \mathrm{mean}(\mathrm{sel1}[t]) - \mathrm{mean}(\mathrm{sel0}[t]) |
+\end{equation}
+
+Ce vecteur de 5000 valeurs mesure, pour chaque échantillon, à quel point la consommation discriminante est cohérente avec l’hypothèse de clé.
+
+Si l’hypothèse est incorrecte, les deux groupes résultent d’un partitionnement aléatoire, sinon, le vecteur est quasi nul.
+Si l’hypothèse est correcte, un ou plusieurs instants présentent un écart significatif.
+
+Dans notre cas, nous avons testé sur le \textit{byte} d’index 0. Les courbes grises représentent les valeurs du vecteur de différences pour toutes les hypothèses de clé incorrectes, tandis que la courbe rouge correspond à l’hypothèse correcte.
+On observe que, pour la mauvaise clé, les écarts moyens restent faibles et bruités, alors que pour la bonne clé un pic net apparaît à un instant précis~(Figures~\ref{fig:diff_all} et~\ref{fig:diff_zoom}).
+Ce pic indique le moment exact où la consommation dépend de la valeur intermédiaire ciblée, et permet d’isoler la clé correcte.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{img/diff_vec_all.png}
+\caption{Vecteurs de différences pour les 256 hypothèses de clé (byte 0). La courbe rouge correspond à la bonne hypothèse.}
+\label{fig:diff_all}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{img/diff_vec_zoom.png}
+\caption{Zoom sur la zone de fuite illustrant le pic caractéristique de la bonne clé.}
+\label{fig:diff_zoom}
+\end{figure}
+
+\subsection{Définition du score DPA}
+Pour quantifier cette différence, on retient la valeur maximale du vecteur :
+
+\begin{equation}
+    \mathrm{score}(guess) = \underset{t}{\mathrm{max}} (\mathrm{diff}(t)).
+\end{equation}
+
+Ainsi, une hypothèse correcte produit généralement un score nettement plus élevé que les mauvaises.
+
+\subsection{Sélection de la clé}
+En répétant les étapes précédentes pour les 256 hypothèses possibles, on obtient 256 scores. L’hypothèse présentant le score maximal est alors sélectionnée :
+
+\begin{equation}
+    \mathrm{key}[0] = \underset{\mathrm{guess} \in [0x00; 0xff]}{\arg\max}\ \mathrm{score}(\mathrm{guess})
+\end{equation}
+
+comme on peut le voir dans la figure~\ref{fig:dpa_score}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{img/score_curve_byte00.png}
+    \caption{Score de chaque \textit{guess}.}
+    \label{fig:dpa_score}
+\end{figure}
+
+Ce processus est ensuite répété pour chaque octet de la clé AES.
+
+
+
+
+\section{Taux de confiance des résultats}
+
+En fonction des valeurs du score, nous pouvons déterminer un taux de confiance associé au résultat obtenu. Comme nous pouvons le voir dans la figure~\ref{fig:dpa_score}, le pic correspondant à l’hypothèse \texttt{0x2b} est nettement visible. Cependant, un second résultat — \texttt{0xb2} — ressort également, bien que plus faiblement. 
+
+Afin de quantifier cette différence, nous définissons le taux de confiance comme le contraste entre le meilleur score et le second meilleur score :
+
+\begin{equation}
+\mathrm{contrast} =
+\frac{\mathrm{best\_score} - \mathrm{second\_score}}
+     {\max(\mathrm{second\_score},\,10^{-15})}
+\end{equation}
+
+\begin{equation}
+\mathrm{confidence} = \min(\max(\mathrm{contrast},\,0),\,1)
+\end{equation}
+
+
+\section{Taux de convergence}
+Pour évaluer la robustesse et l'efficacité de l'attaque DPA, nous étudions son taux de convergence pour un byte de la clé, c’est-à-dire la vitesse à laquelle la bonne hypothèse de clé émerge lorsque l’on augmente le nombre de traces utilisées. Nous définissons le nombre de traces utilisées par l'équation suivante :
+
+\begin{equation}
+    N = \{ k = 10|k = 1; 2; ...; 60 \}
+\end{equation}
+
+Pour un nombre donné de traces $N$, le score pour une hypothèse $g$ est défini comme 
+
+
+\begin{equation}
+    \mathrm{score}_N(g) = \underset{t}{\mathrm{max}} | \mathrm{mean}(\mathrm{sel1}_N[t]) - \mathrm{mean}(\mathrm{sel0}_N[t]) |.
+\end{equation}
+
+En suivant l’évolution de $\mathrm{score}_N(key[0])$ et en le comparant aux autres scores, on observe :
+
+\begin{itemize}
+    \item Lorsque $N$ est faible, la moyenne est bruitée et la clé n'est pas visible,
+    \item au-delà de ce seuil — dans notre cas, vers les 200 traces, un pic commence à émerger, 
+    \item plus $N$ augmente, plus le pic devient stable et plus l’écart avec les mauvaises clés se creuse,
+    \item autour de 300–500 traces, la convergence est nette et la bonne clé domine très clairement.
+\end{itemize}
+
+Une courbe typique de convergence est illustrée figure~\ref{fig:convergence}, où l’on observe que la clé correcte devient systématiquement dominante après un certain nombre de traces.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{img/convergence_byte00.png}
+    \caption{Convergence des \textit{guess} en fonction du nombre de traces pour le \textit{byte} 0.}
+    \label{fig:convergence}
+\end{figure}
+
+\subsection{Erreurs de \textit{guess}}
+
+Il peut néanmoins arriver que l’attaque ne sélectionne pas la bonne clé.
+Dans l’exemple illustré figures~\ref{fig:err_score} et~\ref{fig:err_conv}, la procédure de DPA identifie \texttt{0x90} comme meilleur candidat pour le byte considéré, alors que la vraie valeur est \texttt{0xae}.
+
+En observant la courbe des scores (figure~\ref{fig:err_score}), on remarque toutefois que la bonne clé apparaît en deuxième position, avec un score très proche du maximum.
+Cette proximité indique que, même si le programme s’est trompé, il reste « hésitant » entre deux valeurs plausibles.
+
+La convergence (figure~\ref{fig:err_conv}) confirme cette observation : la clé correcte émerge visiblement parmi les plus fortes hypothèses, mais sans dominer suffisamment pour surpasser \texttt{0x90}.
+
+Dans ce cas particulier, le contraste entre le meilleur et le second meilleur score est faible, ce qui se traduit par un taux de confiance d’environ 15 \%.
+L’erreur n’est donc pas due à une divergence totale, mais à une insuffisante séparation statistique entre les deux meilleures hypothèses.
+
+\begin{figure}
+\centering
+\includegraphics[width=1\linewidth]{img/score_curve_byte05.png}
+\caption{Courbe des scores DPA pour le byte 5 : \texttt{0x90} est sélectionné, mais \texttt{0xae} apparaît en second.}
+\label{fig:err_score}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.6\linewidth]{img/convergence_byte05.png}
+\caption{Convergence du byte 5 : la clé correcte \texttt{0xae} apparaît, mais ne dépasse pas \texttt{0x90}.}
+\label{fig:err_conv}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+\section{Conclusion}
+
+Dans cet article, nous avons présenté une implémentation complète et pédagogique de l’attaque DPA appliquée au premier octet d’une clé AES-128. En exploitant la corrélation entre un modèle de fuite simple (bit de poids faible de la sortie de SBox) et 600 traces de consommation, nous avons pu reconstruire efficacement la valeur de la clé.
+
+Les résultats montrent qu’un pic de différence clairement identifiable apparaît pour la bonne hypothèse, tandis que les hypothèses incorrectes restent proches du bruit. L’étude du taux de confiance confirme que le contraste entre les deux meilleures valeurs permet d’évaluer la fiabilité du résultat. L’analyse de convergence montre également que, dès 200 à 300 traces, la clé correcte commence à dominer, et qu’elle devient nettement isolée au-delà de 300 à 600 traces.
+
+Enfin, nous illustrons ci-dessous la sortie finale du programme, qui confirme expérimentalement la récupération correcte du byte ciblé :
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.85\linewidth]{img/final_output.png}
+    \caption{Sortie finale du programme DPA montrant l’identification correcte de la clé.}
+    \label{fig:final_output}
+\end{figure}
+
+
+
+Ce travail pourrait être et sera prolongé en testant d’autres modèles de fuite (poids de Hamming, distance de Hamming), en appliquant la CPA (\textit{Correlation Power Analysis}) ou en étudiant l’effet de contremesures matérielles et logicielles.
+
+
+
+
+%\bibliographystyle{IEEEtran}
+%\bibliography{references}
+
+
+%\appendices
+%\section{Detailed Tor Circuit Establishment Sequence}
+
+
+\end{document}
