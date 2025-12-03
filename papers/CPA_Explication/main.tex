@@ -81,7 +81,7 @@ La première opération non linéaire de l’algorithme, l’application de la S
 Pour un octet d’index $i$, la valeur intermédiaire manipulée par l’implémentation est :
 
 \begin{equation}
-v = \mathrm{SBox}(\mathrm{plaintext}[i] \oplus \mathrm{key}[i]).
+v = \mathrm{SBox}(\mathrm{plaintext}[i] \oplus \mathrm{key}[i])
 \end{equation}
 
 Cette transformation est idéale pour une attaque CPA pour plusieurs raisons :
@@ -103,12 +103,12 @@ Le modèle retenu dans cette étude est le poids de Hamming de la sortie de la S
 
 Le modèle de fuite est donc défini comme :
 \begin{equation}
-\mathrm{leak} = \mathrm{HW}(v),
+\mathrm{leak} = \mathrm{HW}(v)
 \end{equation}
 où la fonction poids de Hamming s’écrit :
 
 \begin{equation}
-\mathrm{HW}(x) = \sum_{i=0}^{7} ( (x \gg i) \& 1 ).
+\mathrm{HW}(x) = \sum_{i=0}^{7} ( (x \gg i) \& 1 )
 \end{equation}
 
 Cette expression compte simplement le nombre de bits à 1 dans l’octet $x$, ce qui fournit un modèle de consommation entre 0 et~8.
@@ -130,13 +130,13 @@ Pour retrouver $\mathrm{key}[0]$, nous testons les 256 hypothèses $g \in [0x00;
 
 Pour chaque trace $k$, nous calculons :
 \begin{equation}
-    v_k(g) = \mathrm{SBox}(\mathrm{plaintext}[k][0] \oplus g),
+    v_k(g) = \mathrm{SBox}(\mathrm{plaintext}[k][0] \oplus g)
 \end{equation}
 
 puis on applique le modèle de fuite retenu, fondé sur le poids de Hamming :
 
 \begin{equation}
-    \mathrm{hyp}_g[k] = \mathrm{HW}(v_k(g)).
+    \mathrm{hyp}_g[k] = \mathrm{HW}(v_k(g))
 \end{equation}
 
 Chaque hypothèse $g$ génère ainsi un vecteur de taille égale au nombre de traces (ici 100). Ce vecteur représente la consommation que l’on s’attendrait à observer si la clé réelle correspondait effectivement à $g$.
@@ -157,7 +157,7 @@ La figure~\ref{fig:hyp_hw} montre l’hypothèse de fuite pour la vraie clé (\t
 Avant le calcul de la corrélation, les hypothèses de fuite doivent être recentrées autour de zéro.
 Ce pré-traitement élimine le biais constant présent dans le poids de Hamming et garantit que la corrélation ne dépend que des variations du modèle, et non de sa moyenne. Pour chaque hypothèse $g$, le centrage est défini par :
 \begin{equation}
-    \mathrm{hyp}_{g,c}[k] = \mathrm{hyp}_g[k] - \mathrm{mean}(\mathrm{hyp}_g).
+    \mathrm{hyp}_{g,c}[k] = \mathrm{hyp}_g[k] - \mathrm{mean}(\mathrm{hyp}_g)
 \end{equation}
 
 On note $\mathrm{hyp}_g[k]$ l'hypothèse pour le texte d'incice $k$, pour le guess $g$. $\mathrm{hyp}_{g,c}[k]$ représente cette même hypothèse mais centré ($c$).
@@ -180,7 +180,7 @@ Ce centrage est effectué indépendamment pour chaque échantillon temporel afin
 
 Les traces sont également centrées colonne par colonne :
 \begin{equation}
-    \mathrm{traces}_c[k][t] = \mathrm{traces}[k][t] - \mathrm{mean}_k(\mathrm{traces}[k][t]).
+    \mathrm{traces}_c[k][t] = \mathrm{traces}[k][t] - \mathrm{mean}_k(\mathrm{traces}[k][t])
 \end{equation}
 
 Ce prétraitement garantit que la corrélation ne dépend que des variations dynamiques liées à l’activité CMOS et que les différences d’offset entre traces n'influencent pas les résultats. Après ce centrage, chaque colonne temporelle présente une moyenne nulle, ce qui permet un calcul de Pearson strictement basé sur la similarité des formes temporelles et non sur leur amplitude absolue.
@@ -200,7 +200,7 @@ Pour une hypothèse donnée $g$, on définit donc le vecteur de corrélation $\r
     \rho(g, t) =
     \frac{\sum_k \mathrm{hyp}_{g,c}[k] \cdot \mathrm{traces}_c[k][t]}
     {\sqrt{\sum_k \mathrm{hyp}_{g,c}[k]^2}
-     \sqrt{\sum_k \mathrm{traces}_c[k][t]^2}}.
+     \sqrt{\sum_k \mathrm{traces}_c[k][t]^2}}
 \end{equation}
 
 Chaque hypothèse produit ainsi un vecteur $\rho(g,t)$ de longueur 5000. Ce calcul présente plusieurs propriétés essentielles pour l’attaque :
@@ -273,7 +273,7 @@ Une fois les vecteurs de corrélation $\rho(g,t)$ calculés pour les 256 hypoth�
 En CPA, ce résumé est simplement le maximum absolu de la corrélation :
 
 \begin{equation}
-    \mathrm{score}(g) = \max_t \left| \rho(g,t) \right|.
+    \mathrm{score}(g) = \max_t \left| \rho(g,t) \right|
 \end{equation}
 
 Ce score correspond à la plus forte corrélation observée entre le modèle de fuite de l’hypothèse $g$ et les traces mesurées.
@@ -314,13 +314,13 @@ Nous introduisons d’abord une mesure de contraste :
 \begin{equation}
 \mathrm{contrast} =
 \frac{\mathrm{best\_score} - \mathrm{second\_score}}
-{\max(\mathrm{second\_score},,10^{-15})},
+{\max(\mathrm{second\_score},,10^{-15})}
 \end{equation}
 
 puis nous ramenons cette grandeur dans l’intervalle $[0, 1]$ afin d’obtenir un taux de confiance exploitable :
 
 \begin{equation}
-\mathrm{confidence} = \min\left(\max(\mathrm{contrast},,0),,0.90\right).
+\mathrm{confidence} = \min\left(\max(\mathrm{contrast},,0),,0.90\right)
 \end{equation}
 
 Une valeur proche de 1 indique que l’hypothèse de clé correcte se détache nettement — ce qui est le cas lorsque la CPA produit un pic clair et isolé — tandis qu’une valeur faible reflète une incertitude due à une séparation statistique insuffisante entre les deux meilleurs candidats.
