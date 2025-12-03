@@ -96,6 +96,32 @@ Cette transformation est idéale pour une attaque CPA pour plusieurs raisons :
 Dans cette étude, nous ciblons spécifiquement l’octet d’index~0.
 Pour chaque trace de consommation, cet octet est donc calculé à partir de $\mathrm{plaintext}[0]$.
 
+\subsection{Modèle de fuite : poids de Hamming}
+
+Pour relier la valeur intermédiaire AES aux traces de consommation, la CPA nécessite un modèle de fuite reflétant la consommation du microcontrôleur.
+Le modèle retenu dans cette étude est le poids de Hamming de la sortie de la SBox, une approximation classique du nombre de bascules qui changent d’état lors de l’écriture d’une valeur dans un registre.
+
+Le modèle de fuite est donc défini comme :
+\begin{equation}
+\mathrm{leak} = \mathrm{HW}(v),
+\end{equation}
+où la fonction poids de Hamming s’écrit :
+
+\begin{equation}
+\mathrm{HW}(x) = \sum_{i=0}^{7} ( (x \gg i) \& 1 ).
+\end{equation}
+
+Cette expression compte simplement le nombre de bits à 1 dans l’octet $x$, ce qui fournit un modèle de consommation entre 0 et~8.
+
+La figure~\ref{fig:hw_table} illustre le poids de Hamming pour toutes les valeurs possibles entre \texttt{0x00} et \texttt{0xFF}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=1\linewidth]{img/hw_table.png}
+\caption{Poids de Hamming pour toutes les valeurs possibles (0x00 à 0xFF).}
+\label{fig:hw_table}
+\end{figure}
+
 
 
 
@@ -311,7 +337,7 @@ L’objectif est de vérifier à partir de combien de traces la bonne clé devie
 Comme pour la DPA, nous testons différents sous-ensembles de tailles croissantes :
 
 \begin{equation}
-    N = \{ k = 10|k = 1; 2; ...; 10 \}
+    N = \{ 10 \cdot k|k = 1; 2; ...; 10 \}
 \end{equation}
 
 Pour chaque valeur de $N$, on recalcule entièrement les scores CPA pour les 256 hypothèses.

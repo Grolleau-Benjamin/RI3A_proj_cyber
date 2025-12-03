@@ -84,7 +84,7 @@ Dans notre cas, la fuite modélisée est le bit de poids faible (LSB) de la sort
 \end{equation}
 
 \subsection{Construction des hypothèses de fuite}
-Pour retrouver le byte de la clé, on teste les 256 possibilités présentes sur l’intervalle $guess \in [0x00; 0xff]$, pour chaque hypothèse \textit{guess}, et pour les 600 traces disponibles, on calcule :
+Pour retrouver le byte de la clé, on teste les 256 possibilités présentes sur l’intervalle $guess \in \{0x00; 0x01; ...; 0xff\}$, pour chaque hypothèse \textit{guess}, et pour les 600 traces disponibles, on calcule :
 
 \begin{equation}
     v_k = \mathrm{SBox}(\mathrm{plaintext}[k][0] \oplus guess)
@@ -192,7 +192,7 @@ Afin de quantifier cette différence, nous définissons le taux de confiance com
 Pour évaluer la robustesse et l'efficacité de l'attaque DPA, nous étudions son taux de convergence pour un byte de la clé, c’est-à-dire la vitesse à laquelle la bonne hypothèse de clé émerge lorsque l’on augmente le nombre de traces utilisées. Nous définissons le nombre de traces utilisées par l'équation suivante :
 
 \begin{equation}
-    N = \{ k = 10|k = 1; 2; ...; 60 \}
+    N = \{ 10 \cdot k|k = 1; 2; ...; 60 \}
 \end{equation}
 
 Pour un nombre donné de traces $N$, le score pour une hypothèse $g$ est défini comme 
