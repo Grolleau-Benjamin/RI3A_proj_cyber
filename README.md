@@ -11,7 +11,22 @@ uv run main.py
 ```
 
 > [!TIP]
-> The project takes around 1-2 minutes with a MACBook Pro M4 on 5000 traces when correlation plotting is enabled.
+> The project takes around 1-2 minutes with a MACBook Pro M4 on 5000 traces when correlation plotting is enabled. Just
+> be patient!
+
+## Measurement Setup
+All traces used in this project were acquired using the [*ChipWhisperer capture platform*](https://www.newae.com), interfaced with a [Zest_Core_STM32L4](https://6tron.io/zest_core/zest_core_stm32l4a6rg_3_1_1).
+
+The STM32L4A6 implement an ARM Cortex-M33 and executes the AES encryption routine under standard operating conditions.
+
+Each trace corresponds to a full AES-128 encryption of a 16-byte plaintext, and the power consumption was sampled through the CW analog front-end with synchronous triggering on the AES routine.
+
+Key properties of the acquisition setup:
+- Target: STM32L4A6 (Zest_Core board)
+- Capture interface: ChipWhisperer Pro
+- Same key across all captures, distinct plaintexts (random)
+- 5000 samples per trace
+- 600 traces
 
 ## Command-line arguments
 
