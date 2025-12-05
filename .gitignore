@@ -20,3 +20,4 @@ plots/**/*.svg
 
 data/
 .DS_Store
+presentation.key
